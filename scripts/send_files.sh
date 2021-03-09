@@ -2,7 +2,7 @@
 
 if [[ -z "${VMNAME}" ]]
 then
-    echo "Please provide a hostname"
+    echo "Please provide a vmname"
     echo "Usage: export VMNAME=<vmname> && ./send_files.sh"
     exit  
 fi
