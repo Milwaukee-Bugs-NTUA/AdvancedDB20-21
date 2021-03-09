@@ -1,9 +1,9 @@
 #!/bin/bash
 
-if [[ -z "${HOSTNAME}" ]]
+if [[ -z "${VMNAME}" ]]
 then
     echo "Please provide a hostname"
-    echo "Usage: export HOSTNAME=<hostname> && ./send_module.sh"
+    echo "Usage: export VMNAME=<vmname> && ./send_files.sh"
     exit  
 fi
 
@@ -11,6 +11,6 @@ fi
 tar -czvf ../src.tar.gz ../src
 
 # Send source code to master
-scp ../src.tar.gz user@$HOSTNAME:.
+scp ../src.tar.gz user@$VMNAME:.
 # Uncompressed source folder
-ssh user@$HOSTNAME 'tar -xzf ./src.tar.gz && rm ./src.tar.gz'
+ssh user@$VMNAME 'tar -xzf ./src.tar.gz && rm ./src.tar.gz'
