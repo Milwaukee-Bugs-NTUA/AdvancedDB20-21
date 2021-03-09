@@ -16,24 +16,17 @@ def query(format):
 
     df1 = df.load("/user/data/movies." + format)
     df1.registerTempTable("movies")
-    df2 = df.load("/user/data/movie_genres." + format)
-    df2.registerTempTable("movie_genres")
-    df3 = df.load("/user/data/ratings." + format)
-    df3.registerTempTable("ratings")
 
     # Show movies table
     df1.show()
-    df2.show()
-    df3.show()
 
-    # sqlString = \
-    #     "select max(income - cost) as profit, movieId, year" + \
-    #     "from movies" + \
-    #     "where year > 2000" + \
-    #     "group by year"
-
-    # # Query
-    # spark.sql(sqlString).show()
+    sqlString = \
+    "select MAX(m2.income - m2.cost) as profit, m1.movie_id, YEAR(m2.release_date) as year " + \
+    "from movies as m1, movies as m2 " + \
+    "where YEAR(m2.release_date) >= 2000 " + \
+    "group by YEAR(m2.release_date)"
+    # Query
+    spark.sql(sqlString).show()
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
