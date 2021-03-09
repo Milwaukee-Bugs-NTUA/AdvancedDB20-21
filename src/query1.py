@@ -20,11 +20,36 @@ def query(format):
     # Show movies table
     df1.show()
 
+    # sqlString = \
+    # "select t2.profit, t1.movie_id, t1.title,t2.year, (t1.income - t1.cost) as rprofit " + \
+    # "from movies as t1, " + \
+    # "(select MAX(income - cost) as profit, YEAR(release_date) as year " + \
+    # "from movies " + \
+    # "where YEAR(release_date) >= 2000 " + \
+    # "group by YEAR(release_date)" + \
+    # ") as t2 " + \
+    # "where (t1.income - t1.cost) = t2.profit and t2.year = YEAR(t1.release_date) " + \
+    # "order by t2.year desc"
+
+    # sqlString = \
+    # "select MAX(income - cost) as profit, YEAR(release_date) as year " + \
+    # "from movies " + \
+    # "where YEAR(release_date) >= 2000 " + \
+    # "group by YEAR(release_date) " + \
+    # "order by YEAR(release_date)"
+
     sqlString = \
-    "select MAX(m2.income - m2.cost) as profit, m1.movie_id, YEAR(m2.release_date) as year " + \
-    "from movies as m1, movies as m2 " + \
-    "where YEAR(m2.release_date) >= 2000 " + \
-    "group by YEAR(m2.release_date)"
+    "select first(m.income - m.cost) as profit, first(m.movie_id), first(m.title), t.year as year " + \
+    "from (" + \
+    "select MAX(income - cost) as maxprofit,YEAR(release_date) as year " + \
+    "from movies " + \
+    "where YEAR(release_date) >= 2000 " + \
+    "group by YEAR(release_date) " + \
+    ") as t inner join movies as m " + \
+    "on YEAR(m.release_date) = t.year and t.maxprofit = (m.income - m.cost) " + \
+    "group by t.year " + \
+    "order by t.year"
+
     # Query
     spark.sql(sqlString).show()
 
