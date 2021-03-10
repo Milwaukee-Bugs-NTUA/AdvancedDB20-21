@@ -17,9 +17,6 @@ def query(format):
     df1 = df.load("/user/data/movies." + format)
     df1.registerTempTable("movies")
 
-    # Show movies table
-    df1.show()
-
     sqlString = \
     "select first(m.income - m.cost) as profit, first(m.movie_id), first(m.title), t.year as year " + \
     "from (" + \
@@ -33,7 +30,8 @@ def query(format):
     "group by t.year " + \
     "order by t.year"
     # Query
-    spark.sql(sqlString)
+    df = spark.sql(sqlString)
+    df.show(df.count(),truncate=False)
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
