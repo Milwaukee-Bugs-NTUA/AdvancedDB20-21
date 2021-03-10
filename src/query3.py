@@ -19,11 +19,22 @@ def query(format):
     df2 = df.load("/user/data/movie_genres." + format)
     df2.registerTempTable("movie_genres")
 
+    #sqlString = \
+    #"select mg.genre, AVG(r.rating) as mean_rating, count(distinct(mg.movie_id)) as movies " + \
+	#"From movie_genres as mg, ratings as r " + \
+	#"Where mg.movie_id == r.movie_id " + \
+    #"Group by mg.genre"
+
     sqlString = \
-    "select mg.genre, AVG(r.rating) as mean_rating, count(distinct(mg.movie_id)) as movies " + \
-	"From movie_genres as mg, ratings as r " + \
-	"Where mg.movie_id == r.movie_id " + \
-    "Group by mg.genre"
+    "select mg.genre, AVG(r.average_score) as mean_rating, count(r.movie_id) as movies " + \
+	"from movie_genres as mg, " + \
+    "(" + \
+        "select movie_id, AVG(rating) as average_score " + \
+        "from ratings " + \
+        "group by movie_id" + \
+    ") as r " + \
+	"where mg.movie_id == r.movie_id " + \
+    "group by mg.genre"
     
     # Query
     spark.sql(sqlString).show()
