@@ -3,7 +3,7 @@
 from pyspark.sql import SparkSession
 import sys
 
-def query(format):
+def query4(format):
     spark = SparkSession.builder.appName('query1-sql').getOrCreate()
 
     if format == "csv":
@@ -22,10 +22,11 @@ def query(format):
     sqlString = \
     "select AVG(LENGTH(m.summary) - LENGTH(REPLACE(m.summary, ' ', '')) + 1) as mean_summary, (YEAR(m.release_date) - 2000) div 5 as period " + \
     "from movies as m, movie_genres as mg " + \
-    "where m.movie_id == m.movie_id " + \
+    "where m.movie_id = mg.movie_id " + \
         "and Year(m.release_date) >= 2000 " + \
-        "and mg.genre == 'Drama' " + \
-    "group by (YEAR(m.release_date) - 2000) div 5"
+        "and mg.genre = 'Drama' " + \
+    "group by (YEAR(m.release_date) - 2000) div 5 " + \
+    "order by period" 
 
     # Query
     spark.sql(sqlString).show()
@@ -36,4 +37,4 @@ if __name__ == "__main__":
         print("(1) csv, (2) parquet")
         exit(0)
     else:
-        query(sys.argv[1])
+        query4(sys.argv[1])

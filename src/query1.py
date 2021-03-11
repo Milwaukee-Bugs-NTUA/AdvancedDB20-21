@@ -3,7 +3,7 @@
 from pyspark.sql import SparkSession
 import sys
 
-def query(format):
+def query1(format):
     spark = SparkSession.builder.appName('query1-sql').getOrCreate()
 
     if format == "csv":
@@ -39,4 +39,4 @@ if __name__ == "__main__":
         print("(1) csv, (2) parquet")
         exit(0)
     else:
-        query(sys.argv[1])
+        query1(sys.argv[1])
