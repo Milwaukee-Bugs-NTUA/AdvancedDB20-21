@@ -18,15 +18,15 @@ def query1(format):
     df1.registerTempTable("movies")
 
     sqlString = \
-    "select first(((m.income - m.cost)/m.cost)*100) as profit, first(m.movie_id), first(m.title), t.year as year " + \
+    "select first(t.maxprofit) as profit, first(m.movie_id), first(m.title), t.year as year " + \
     "from (" + \
-    "select MAX(income - cost) as maxprofit,YEAR(release_date) as year " + \
-    "from movies " + \
-    "where YEAR(release_date) >= 2000 " + \
-    "and income != 0 and cost != 0 " + \
-    "group by YEAR(release_date) " + \
+        "select MAX(((income - cost)/cost)*100) as maxprofit,YEAR(release_date) as year " + \
+        "from movies " + \
+        "where YEAR(release_date) >= 2000 " + \
+        "and income != 0 and cost != 0 " + \
+        "group by YEAR(release_date) " + \
     ") as t inner join movies as m " + \
-    "on YEAR(m.release_date) = t.year and t.maxprofit = (m.income - m.cost) " + \
+    "on YEAR(m.release_date) = t.year and t.maxprofit = (((m.income - m.cost)/m.cost)*100) " + \
     "group by t.year " + \
     "order by t.year"
     # Query
