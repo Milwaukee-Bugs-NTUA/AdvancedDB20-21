@@ -34,7 +34,8 @@ def query3(format):
         "group by movie_id" + \
     ") as r " + \
 	"where mg.movie_id = r.movie_id " + \
-    "group by mg.genre"
+    "group by mg.genre " + \
+    "order by mg.genre"
     
     # Query
     spark.sql(sqlString).show()
