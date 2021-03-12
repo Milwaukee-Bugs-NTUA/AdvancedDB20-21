@@ -35,7 +35,9 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Please provide number of iterations for each query")
         exit()
-
+    if sys.argv[1] <= 0:
+        print("Please provide a non negative number of iterations for each query"
+        exit()
     tests = {"csv":[], "parquet":[],"rdd":[]}
 
     for i in range(1,6):

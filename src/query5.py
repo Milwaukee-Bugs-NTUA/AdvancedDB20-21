@@ -8,7 +8,7 @@ def query5(format,showOutput=True):
     spark = SparkSession.builder.appName('query5-sql').getOrCreate()
 
     if format == "csv":
-        df = spark.read.format("csv").option("header", "true")
+        df = spark.read.format("csv").option("header", "true").option("inferSchema","true")
     elif format == "parquet":
         df = spark.read.format("parquet")
     else:
