@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
 from pyspark.sql import SparkSession
+import time
 import sys
 
-def query4(format):
-    spark = SparkSession.builder.appName('query1-sql').getOrCreate()
+def query4(format,showOutput=True):
+    spark = SparkSession.builder.appName('query5-sql').getOrCreate()
 
     if format == "csv":
         df = spark.read.format("csv").option("header", "true")
@@ -121,7 +122,16 @@ def query4(format):
     """
 
     # Query
-    spark.sql(sqlString).show()
+    start = time.time()
+    spark.sql(sqlString)
+    end = time.time()
+    
+    if showOutput:
+        df.show()
+        print("Execution time:",end - start,"secs")
+
+    return end - start
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

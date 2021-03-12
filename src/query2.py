@@ -2,9 +2,10 @@
 
 from pyspark.sql import SparkSession
 import sys
+import time
 
-def query2(format):
-    spark = SparkSession.builder.appName('query1-sql').getOrCreate()
+def query2(format,showOutput=True):
+    spark = SparkSession.builder.appName('query2-sql').getOrCreate()
 
     if format == "csv":
         df = spark.read.format("csv").option("header", "true")
@@ -29,7 +30,15 @@ def query2(format):
         ") as t1, ratings as r"
     
     # Query
-    spark.sql(sqlString).show()
+    start = time.time()
+    df = spark.sql(sqlString)
+    end = time.time()
+    
+    if showOutput:
+        df.show()
+        print("Execution time:",end - start,"secs")
+
+    return end - start
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

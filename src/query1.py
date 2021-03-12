@@ -4,7 +4,7 @@ from pyspark.sql import SparkSession
 import time
 import sys
 
-def query1(format, showOutput="True"):
+def query1(format, showOutput=True):
     spark = SparkSession.builder.appName('query1-sql').getOrCreate()
 
     if format == "csv":
@@ -37,7 +37,7 @@ def query1(format, showOutput="True"):
 
     if showOutput:
         df.show(df.count(),truncate=False)
-        print("Execution time: {} secs".format(end-start))
+        print("Execution time: {} secs".format(end-  start))
     return end - start
 
 if __name__ == "__main__":
