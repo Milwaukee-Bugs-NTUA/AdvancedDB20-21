@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
 from pyspark.sql import SparkSession
+import time
 import sys
 
-def query1(format):
+def query1(format, showOutput="True"):
     spark = SparkSession.builder.appName('query1-sql').getOrCreate()
 
     if format == "csv":
@@ -18,7 +19,7 @@ def query1(format):
     df1.registerTempTable("movies")
 
     sqlString = \
-    "select first(t.maxprofit) as profit, first(m.movie_id), first(m.title), t.year as year " + \
+    "select first(t.maxprofit) as profit, first(m.movie_id) as movie_id, first(m.title) as title, t.year as year " + \
     "from (" + \
         "select MAX(((income - cost)/cost)*100) as maxprofit,YEAR(release_date) as year " + \
         "from movies " + \
@@ -30,8 +31,14 @@ def query1(format):
     "group by t.year " + \
     "order by t.year"
     # Query
+    start = time.time()
     df = spark.sql(sqlString)
-    df.show(df.count(),truncate=False)
+    end = time.time()
+
+    if showOutput:
+        df.show(df.count(),truncate=False)
+        print("Execution time: {} secs".format(end-start))
+    return end - start
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
