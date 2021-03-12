@@ -123,7 +123,7 @@ def query4(format,showOutput=True):
 
     # Query
     start = time.time()
-    spark.sql(sqlString)
+    df = spark.sql(sqlString)
     end = time.time()
     
     if showOutput:

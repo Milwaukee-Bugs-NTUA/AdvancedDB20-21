@@ -21,7 +21,7 @@ def query4(format,showOutput=True):
     df2.registerTempTable("movie_genres")
 
     sqlString = \
-    "select AVG(LENGTH(m.summary) - LENGTH(REPLACE(m.summary, ' ', '')) + 1) as mean_summary, (YEAR(m.release_date) - 2000) div 5 as period " + \
+    "select (YEAR(m.release_date) - 2000) div 5 as period, AVG(LENGTH(m.summary) - LENGTH(REPLACE(m.summary, ' ', '')) + 1) as mean_summary " + \
     "from movies as m, movie_genres as mg " + \
     "where m.movie_id = mg.movie_id " + \
         "and Year(m.release_date) >= 2000 " + \
@@ -31,7 +31,7 @@ def query4(format,showOutput=True):
 
     # Query
     start = time.time()
-    spark.sql(sqlString)
+    df = spark.sql(sqlString)
     end = time.time()
 
     if showOutput:

@@ -19,7 +19,7 @@ def query1(format, showOutput=True):
     df1.registerTempTable("movies")
 
     sqlString = \
-    "select first(t.maxprofit) as profit, first(m.movie_id) as movie_id, first(m.title) as title, t.year as year " + \
+    "select t.year as year, first(t.maxprofit) as profit, first(m.movie_id) as movie_id, first(m.title) as title " + \
     "from (" + \
         "select MAX(((income - cost)/cost)*100) as maxprofit,YEAR(release_date) as year " + \
         "from movies " + \
