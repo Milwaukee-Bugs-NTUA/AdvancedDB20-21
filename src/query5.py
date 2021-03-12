@@ -4,7 +4,7 @@ from pyspark.sql import SparkSession
 import time
 import sys
 
-def query4(format,showOutput=True):
+def query5(format,showOutput=True):
     spark = SparkSession.builder.appName('query5-sql').getOrCreate()
 
     if format == "csv":
@@ -139,4 +139,4 @@ if __name__ == "__main__":
         print("(1) csv, (2) parquet")
         exit(0)
     else:
-        query4(sys.argv[1])
+        query5(sys.argv[1])
