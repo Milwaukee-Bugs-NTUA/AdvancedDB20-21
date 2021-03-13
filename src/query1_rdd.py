@@ -4,6 +4,7 @@ from pyspark.sql import SparkSession
 from itertools import islice
 from io import StringIO
 import csv
+import time
 
 ignore_header = lambda idx, it: islice(it, 1, None) if idx == 0 else it
 
@@ -17,7 +18,8 @@ def query1():
     spark = SparkSession.builder.appName('query1-sql').getOrCreate()
     sc = spark.sparkContext
 
-    movies = \
+    start = time.time()
+    table = \
         sc.textFile("hdfs://master:9000/user/data/movies.csv"). \
         mapPartitionsWithIndex(ignore_header). \
         map(lambda x: (split_complex(x)[0], (ex_year(split_complex(x)[3]), split_complex(x)[5], split_complex(x)[6], split_complex(x)[1]))). \
@@ -28,8 +30,12 @@ def query1():
         sortByKey(ascending=True). \
         collect()
 
-    for i in movies:
+    for i in table:
         print(i)
+    end = time.time()
+    print("Execution time:",end - start,"secs")
+
+    return end - start
 
 if __name__ == "__main__":
     query1()
