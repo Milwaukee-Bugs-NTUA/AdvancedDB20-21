@@ -27,12 +27,11 @@ def query1():
         filter(lambda x: int(x[1][0]) >= 2000). \
         map(lambda x: (int(x[1][0]), (int(x[0]),x[1][3], ((float(x[1][2]) - float(x[1][1])) / float(x[1][1]))*100))). \
         reduceByKey(lambda x, y: x if x[2] > y[2] else y). \
-        sortByKey(ascending=True). \
+        sortByKey(). \
         collect()
-
+    end = time.time()
     for i in table:
         print(i)
-    end = time.time()
     print("Execution time:",end - start,"secs")
 
     return end - start
