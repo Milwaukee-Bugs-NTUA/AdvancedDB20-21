@@ -130,3 +130,6 @@ dmypy.json
 
 # Compressed code
 *.tar.gz
+
+# Word temp files
+.~lock.*
