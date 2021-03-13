@@ -11,16 +11,6 @@ ignore_header = lambda idx, it: islice(it, 1, None) if idx == 0 else it
 def split_complex(x):
     return list(csv.reader(StringIO(x), delimiter=','))[0]
 
-def ex_year(date):
-    return date.split("-")[0]
-
-# ((u,genre), (num, movie_id, rating, title, popularity))
-def min_max(x, y):
-    cur_key,  (cur_num, cur_movie_id, cur_rating, cur_title, cur_popularity) = x
-    key,  (num, movie_id, rating, title, popularity) = x
-    
-
-
 def query5_rdd():
     spark = SparkSession.builder.appName('query5-sql').getOrCreate()
     sc = spark.sparkContext
@@ -45,25 +35,25 @@ def query5_rdd():
         map(lambda x: (int(split_complex(x)[0]), (split_complex(x)[1],float(split_complex(x)[-1]))))
     # (movie_id, (title, popularity))
 
-    movies_ratings_genres = \
-        ratings.join(movies). \
-        mapValues(lambda t: t[0] + t[1]). \
-        join(genres). \
-        mapValues(lambda t: t[0] + t[1]). \
-        map(lambda movie_id, values: ((values[0], values[-1]), (movie_id, values[1:-1])))
     # ((user_id, genre), (movie_id, rating, title, popularity, genre))
 
-    # (genre, (user_id, num_ratings))
+    # map(lambda genre, t: ((genre, t[0]), t[1])). \
+    #     join(movies_ratings_genres). \
+    #     mapValues(lambda t: t[0] + t[1]). \
+    #     max(key=lambda key, values: (values[2],values[4])). \
+
+    # join 
+    # (movie_id,genre) x (movie_id,(user_id, rating))
+    # (movie_id, (genre, (user_id, rating)))
+    # map ((genre,user_id), 1)
+    # reduce ((genre,user_id),num)
+    # map (genre, (user_id,num))
     special_users = \
         genres.join(ratings). \
-        map(lambda x: ((x[1][0],x[1][1]), 1)). \
+        map(lambda x: ((x[1][0],x[1][1][0]), 1)). \
         reduceByKey(lambda x, y: x + y). \
         map(lambda x: (x[0][0], (x[0][1],x[1]))). \
         reduceByKey(lambda x, y: x if x[1] > y[1] else y). \
-        map(lambda genre, t: ((genre, t[0]), t[1])). \
-        join(movies_ratings_genres). \
-        mapValues(lambda t: t[0] + t[1]). \
-        max(key=lambda key, values: (values[2],values[4])). \
         collect()
 
         # ((u,genre), (num, movie_id, rating, title, popularity))
