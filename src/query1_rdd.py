@@ -14,7 +14,7 @@ def split_complex(x):
 def ex_year(date):
     return date.split("-")[0]
 
-def query1():
+def query1_rdd():
     spark = SparkSession.builder.appName('query1-sql').getOrCreate()
     sc = spark.sparkContext
 
@@ -37,4 +37,4 @@ def query1():
     return end - start
 
 if __name__ == "__main__":
-    query1()
+    query1_rdd()

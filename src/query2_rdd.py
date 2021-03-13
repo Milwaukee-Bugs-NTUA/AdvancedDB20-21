@@ -11,7 +11,7 @@ ignore_header = lambda idx, it: islice(it, 1, None) if idx == 0 else it
 def split_complex(x):
     return list(csv.reader(StringIO(x), delimiter=','))[0]
 
-def query2():
+def query2_rdd():
     spark = SparkSession.builder.appName('query2-sql').getOrCreate()
     sc = spark.sparkContext
     
@@ -50,4 +50,4 @@ def query2():
 
 
 if __name__ == "__main__":
-    query2()
+    query2_rdd()
