@@ -31,12 +31,9 @@ def query4(format,showOutput=True):
 
     # Query
     start = time.time()
-    df = spark.sql(sqlString)
+    spark.sql(sqlString).show()
     end = time.time()
-
-    if showOutput:
-        df.show()
-        print("Execution time:",end - start,"secs")
+    print("Execution time:",end - start,"secs")
 
     return end - start
 

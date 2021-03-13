@@ -46,7 +46,7 @@ if __name__ == "__main__":
             t_sum = 0
             print("Executing Q{} for {} format...".format(i,f))
             for n in range(int(sys.argv[1])):
-                t_sum += locals()["query{}".format(i)](f,showOutput=False)
+                t_sum += locals()["query{}".format(i)](f)
             t = t_sum / (n + 1)
             tests[f].append(t)
         print()
