@@ -11,6 +11,12 @@ ignore_header = lambda idx, it: islice(it, 1, None) if idx == 0 else it
 def split_complex(x):
     return list(csv.reader(StringIO(x), delimiter=','))[0]
 
+def convert_to_dict(l):
+    res = {}
+    for t in l:
+        res[(t[1][0], t[0])] = t[1][1]
+    return res
+
 def query5_rdd():
     spark = SparkSession.builder.appName('query5-sql').getOrCreate()
     sc = spark.sparkContext
@@ -21,37 +27,17 @@ def query5_rdd():
         sc.textFile("hdfs://master:9000/user/data/movie_genres.csv"). \
         mapPartitionsWithIndex(ignore_header). \
         map(lambda x: (int(split_complex(x)[0]), split_complex(x)[1]))
-    # (movie_id, genre)
-    # dummy_genres = \
-    #     sc.textFile("hdfs://master:9000/user/data/movie_genres.csv"). \
-    #     mapPartitionsWithIndex(ignore_header). \
-    #     map(lambda x: ((int(split_complex(x)[0]),split_complex(x)[1]), ()))
-    # # ((movie_id,genre),())
-        
+    # (movie_id, genre)        
     ratings = \
         sc.textFile("hdfs://master:9000/user/data/ratings.csv"). \
         mapPartitionsWithIndex(ignore_header). \
         map(lambda x: (int(split_complex(x)[1]), (int(split_complex(x)[0]), float(split_complex(x)[2]))))
     # (movie_id, (user_id, rating))
-
-    # user_ratings = \
-    #     sc.textFile("hdfs://master:9000/user/data/ratings.csv"). \
-    #     mapPartitionsWithIndex(ignore_header). \
-    #     map(lambda x: (int(split_complex(x)[0]), (int(split_complex(x)[1]), float(split_complex(x)[2]))))
-    # # (user_id, (movie_id, rating))
-    
     movies = \
         sc.textFile("hdfs://master:9000/user/data/movies.csv"). \
         mapPartitionsWithIndex(ignore_header). \
         map(lambda x: (int(split_complex(x)[0]), (split_complex(x)[1],float(split_complex(x)[-1]))))
     # (movie_id, (title, popularity))
-
-    # ((user_id, genre), (movie_id, rating, title, popularity, genre))
-
-    # map(lambda genre, t: ((genre, t[0]), t[1])). \
-    #     join(movies_ratings_genres). \
-    #     mapValues(lambda t: t[0] + t[1]). \
-    #     max(key=lambda key, values: (values[2],values[4])). \
 
     # join 
     # (movie_id,genre) x (movie_id,(user_id, rating))
@@ -59,40 +45,41 @@ def query5_rdd():
     # map ((genre,user_id), 1)
     # reduce ((genre,user_id),num)
     # map (genre, (user_id,num))
-    # special users ar computed
-    # map (user_id, (genre,num))
-    # join (user_id, (genre,num)) x (user_id,(movie_id,rating))
-    # (user_id, (genre,num),(movie_id, rating))
-    # mapvalues (user_id, (genre,num, movie_id, rating))
-    # map ((movie_id,genre), (num, user_id,rating))
-    # join ((movie_id,genre), (num, user_id,rating)) X ((movie_id,genre),())
-    special_users = \
+    # special users computed
+    special_users_rdd = \
         genres.join(ratings). \
         map(lambda x: ((x[1][0],x[1][1][0]), 1)). \
         reduceByKey(lambda x, y: x + y). \
         map(lambda x: (x[0][0], (x[0][1],x[1]))). \
-        reduceByKey(lambda x, y: x if x[1] > y[1] else y). \
+        reduceByKey(lambda x, y: x if x[1] > y[1] else y)
+    
+    special_users = \
+        special_users. \
         map(lambda x: (x[1][0], (x[0],x[1][1]))). \
         collect()
+    
+    special_users_rdd = \
+        special_users_rdd. \
+        map(lambda x: ((x[0],x[1][0]), x[1][1]))
 
-    print("Special Users computed")
-    special = dict(special_users)
+    special_tuples = convert_to_dict(special_users)
+
+    print("Special Users computed") 
 
     special_ratings = \
-        ratings.filter(lambda x: x[1][0] in special). \
-        take(10)      
-    
-    print("Special ratings computed")
-        
-        
-        # map(lambda x: (x[1][0], (x[0],x[1][1]))). \
-        # join(user_ratings). \
-        # mapValues(lambda t1: t1[0] + t1[1]). \
-        # map(lambda x: ((x[1][0],x[1][2]), (x[1][1],x[0],x[1][3]))). \
-        # join(dummy_genres). \
-        # filter(lambda x: x[0][1] == 'Action'). \
-        # take(10)        
+        ratings.filter(lambda x: x[1][0] in dict(special_users)). \
+        join(genres). \
+        mapValues(lambda v: (v[0][0],v[0][1],v[1])). \
+        filter(lambda x: (x[1][2],x[1][0]) in special_tuples). \
+        join(movies). \
+        mapValues(lambda v: (v[0][0],v[0][1],v[0][2],v[1][0],v[1][1])). \
+        map(lambda x: ((x[1][2], x[1][0]) ,(x[0],x[1][1],x[1][3],x[1][4]))). \
+        reduceByKey(lambda x, y: x if x[1] > y[1] or (x[1] == y[1] and x[3] >= y[3]) else y). \
+        collect()
 
+    # join(special_users_rdd). \
+    #     mapValues(lambda v: (v[0][0],v[0][1],v[0][2],v[0][3],v[1][0])). \
+    print("Special ratings computed")
     end = time.time()
 
     for i in special_users:
