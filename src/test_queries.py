@@ -9,17 +9,23 @@ from query2 import *
 from query3 import *
 from query4 import *
 from query5 import *
+from query1_rdd import *
+from query2_rdd import *
+from query3_rdd import *
+from query4_rdd import *
+from query5_rdd import *
 
-def plot_results(x1, x2):
+def plot_results(x1, x2, x3):
 
     labels = ["Q1","Q2","Q3","Q4","Q5"]
     x = np.arange(len(labels))
-    width = 0.35 
+    width = 0.20 
 
     # Figure
     fig, ax = plt.subplots()
-    rects1 = ax.bar(x - width/2, x1, width, label='csv')
-    rects2 = ax.bar(x + width/2, x2, width, label='parquet')
+    ax.bar(x - width, x1, width, label='csv')
+    ax.bar(x, x2, width, label='parquet')
+    ax.bar(x + width, x1, width, label='rdd')
     ax.set_ylabel('Execution time')
     ax.set_xlabel('Queries')
     ax.set_title('Execution Times per query & technology')
@@ -35,8 +41,8 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Please provide number of iterations for each query")
         exit()
-    if sys.argv[1] <= 0:
-        print("Please provide a non negative number of iterations for each query"
+    if int(sys.argv[1]) <= 0:
+        print("Please provide a non negative number of iterations for each query")
         exit()
     tests = {"csv":[], "parquet":[],"rdd":[]}
 
@@ -49,6 +55,20 @@ if __name__ == "__main__":
                 t_sum += locals()["query{}".format(i)](f)
             t = t_sum / (n + 1)
             tests[f].append(t)
+        t_sum = 0
+        print("Executing Q{} with rdd...".format(i))
+        for n in range(int(sys.argv[1])):
+            t_sum += locals()["query{}_rdd".format(i)]()
+        t = t_sum / (n + 1)
+        tests["rdd"].append(t)
         print()
-         
-    plot_results(tests["csv"],tests["parquet"])
+
+
+    # Save output to disk
+    with open("../results/execution_time.txt", "wt") as f:
+        print("Q1\tQ2\tQ3\tQ4\tQ5\t",file=f)
+        print(*tests["csv"],file=f)
+        print(*tests["parquet"],file=f)
+        print(*tests["rdd"],file=f)
+             
+    plot_results(tests["csv"],tests["parquet"],tests["rdd"])
