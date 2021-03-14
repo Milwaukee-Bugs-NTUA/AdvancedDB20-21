@@ -17,6 +17,15 @@ def convert_to_dict(l):
         res[(t[1][0], t[0])] = t[1][1]
     return res
 
+def min_max(current, candidate):
+    current_min, current_max = current
+    candidate_min, candidate_max = candidate
+
+    special_max = lambda x, y: x if x[1] > y[1] or (x[1] == y[1] and x[3] >= y[3]) else y
+    special_min = lambda x, y: x if x[1] < y[1] or (x[1] == y[1] and x[3] >= y[3]) else y
+
+    return special_min(current_min,candidate_min), special_max(current_max, candidate_max)
+
 def query5_rdd():
     spark = SparkSession.builder.appName('query5-sql').getOrCreate()
     sc = spark.sparkContext
@@ -51,17 +60,10 @@ def query5_rdd():
         map(lambda x: ((x[1][0],x[1][1][0]), 1)). \
         reduceByKey(lambda x, y: x + y). \
         map(lambda x: (x[0][0], (x[0][1],x[1]))). \
-        reduceByKey(lambda x, y: x if x[1] > y[1] else y)
+        reduceByKey(lambda x, y: x if x[1] > y[1] else y). \
+        map(lambda x: (x[1][0], (x[0],x[1][1])))
     
-    special_users = \
-        special_users. \
-        map(lambda x: (x[1][0], (x[0],x[1][1]))). \
-        collect()
-    
-    special_users_rdd = \
-        special_users_rdd. \
-        map(lambda x: ((x[0],x[1][0]), x[1][1]))
-
+    special_users = special_users_rdd.collect()
     special_tuples = convert_to_dict(special_users)
 
     print("Special Users computed") 
@@ -74,16 +76,14 @@ def query5_rdd():
         join(movies). \
         mapValues(lambda v: (v[0][0],v[0][1],v[0][2],v[1][0],v[1][1])). \
         map(lambda x: ((x[1][2], x[1][0]) ,(x[0],x[1][1],x[1][3],x[1][4]))). \
-        reduceByKey(lambda x, y: x if x[1] > y[1] or (x[1] == y[1] and x[3] >= y[3]) else y). \
+        map(lambda x: (x[0] ,(x[1],x[1]))). \
+        reduceByKey(min_max). \
+        map(lambda x: (x[0][0], (x[0][1],special_tuples[x[0]], x[1][1][2],x[1][1][1], x[1][0][2], x[1][0][1]))). \
+        sortByKey(). \
         collect()
-
-    # join(special_users_rdd). \
-    #     mapValues(lambda v: (v[0][0],v[0][1],v[0][2],v[0][3],v[1][0])). \
     print("Special ratings computed")
     end = time.time()
 
-    for i in special_users:
-        print(i)
     for i in special_ratings:
         print(i)
     print("Execution time:",end - start,"secs")
