@@ -1,0 +1,2 @@
+Percentage: 87.47858956942885
+Execution time: 117.78473281860352 secs
