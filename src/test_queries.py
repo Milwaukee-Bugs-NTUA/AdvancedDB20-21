@@ -25,7 +25,7 @@ def plot_results(x1, x2, x3):
     fig, ax = plt.subplots()
     ax.bar(x - width, x1, width, label='csv')
     ax.bar(x, x2, width, label='parquet')
-    ax.bar(x + width, x1, width, label='rdd')
+    ax.bar(x + width, x3, width, label='rdd')
     ax.set_ylabel('Execution time')
     ax.set_xlabel('Queries')
     ax.set_title('Execution Times per query & technology')
@@ -35,6 +35,27 @@ def plot_results(x1, x2, x3):
     fig.tight_layout()
     # Save figure
     plt.savefig("../results/plot.png",dpi=300)
+
+def plot_sql_results(x1, x2):
+
+    labels = ["Q1","Q2","Q3","Q4","Q5"]
+    x = np.arange(len(labels))
+    width = 0.35 
+
+    # Figure
+    fig, ax = plt.subplots()
+    ax.bar(x - width/2, x1, width, label='csv')
+    ax.bar(x + width/2, x2, width, label='parquet')
+    ax.set_ylabel('Execution time')
+    ax.set_xlabel('Queries')
+    ax.set_title('Execution Times per query & technology')
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels)
+    ax.legend()
+    fig.tight_layout()
+    # Save figure
+    plt.savefig("../results/plot_sql.png",dpi=300)
+
 
 if __name__ == "__main__":
 
@@ -72,3 +93,4 @@ if __name__ == "__main__":
         print(*tests["rdd"],file=f)
              
     plot_results(tests["csv"],tests["parquet"],tests["rdd"])
+    plot_sql_results(tests["csv"],tests["parquet"])
