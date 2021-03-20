@@ -7,7 +7,8 @@ disabled = sys.argv[1]
 spark = SparkSession.builder.appName('query1-sql').getOrCreate()
 
 if disabled == "Y":
-    spark.conf.set("spark.sql.cbo.enabled", "False")
+    spark.conf.set("spark.sql.autoBroadcastJoinThreshold", -1)
+    #set("spark.sql.cbo.enabled", "False")
 elif disabled == 'N':
     pass
 else:

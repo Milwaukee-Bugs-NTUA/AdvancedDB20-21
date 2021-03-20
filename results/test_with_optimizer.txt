@@ -38,4 +38,4 @@ only showing top 20 rows
       +- FileScan parquet [user_id#0L,movie_id#1L,rating#2,time_of_rating#3L] Batched: true, DataFilters: [isnotnull(movie_id#1L)], Format: Parquet, Location: InMemoryFileIndex[hdfs://master:9000/user/data/ratings.parquet], PartitionFilters: [], PushedFilters: [IsNotNull(movie_id)], ReadSchema: struct<user_id:bigint,movie_id:bigint,rating:double,time_of_rating:bigint>
 
 
-Time with choosing join type enabled is 3.0369 sec.
+Time with choosing join type enabled is 2.8474 sec.

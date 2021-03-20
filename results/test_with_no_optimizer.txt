@@ -1,41 +1,44 @@
-+--------+---------------+-------+--------+------+--------------+
-|movie_id|          genre|user_id|movie_id|rating|time_of_rating|
-+--------+---------------+-------+--------+------+--------------+
-|       5|         Comedy|      2|       5|   3.0|     867039249|
-|       5|          Crime|      2|       5|   3.0|     867039249|
-|    1408|      Adventure|     15|    1408|   5.0|    1346008714|
-|    1408|         Action|     15|    1408|   5.0|    1346008714|
-|     524|          Crime|     24|     524|   2.0|     979870484|
-|     524|          Drama|     24|     524|   2.0|     979870484|
-|    1408|      Adventure|     24|    1408|   3.0|     979870731|
-|    1408|         Action|     24|    1408|   3.0|     979870731|
-|     902|      Adventure|     36|     902|   2.0|     965349039|
-|     902|Science Fiction|     36|     902|   2.0|     965349039|
-|     902|        Fantasy|     36|     902|   2.0|     965349039|
-|       5|         Comedy|     40|       5|   4.0|     862515493|
-|       5|          Crime|     40|       5|   4.0|     862515493|
-|     902|      Adventure|     41|     902|   4.0|    1445255341|
-|     902|Science Fiction|     41|     902|   4.0|    1445255341|
-|     902|        Fantasy|     41|     902|   4.0|    1445255341|
-|     524|          Crime|     43|     524|   2.5|    1179200291|
-|     524|          Drama|     43|     524|   2.5|    1179200291|
-|     902|      Adventure|     43|     902|   4.5|    1179197971|
-|     902|Science Fiction|     43|     902|   4.5|    1179197971|
-+--------+---------------+-------+--------+------+--------------+
++--------+-------+-------+--------+------+--------------+
+|movie_id|  genre|user_id|movie_id|rating|time_of_rating|
++--------+-------+-------+--------+------+--------------+
+|     902|Fantasy|     36|     902|   2.0|     965349039|
+|     902|Fantasy|     41|     902|   4.0|    1445255341|
+|     902|Fantasy|     43|     902|   4.5|    1179197971|
+|     902|Fantasy|     47|     902|   5.0|    1036709534|
+|     902|Fantasy|     53|     902|   5.0|     938811917|
+|     902|Fantasy|     67|     902|   3.5|    1296082245|
+|     902|Fantasy|     77|     902|   4.0|     956332902|
+|     902|Fantasy|    120|     902|   4.5|    1211654390|
+|     902|Fantasy|    139|     902|   3.0|    1012851098|
+|     902|Fantasy|    150|     902|   2.0|     945841109|
+|     902|Fantasy|    229|     902|   3.0|    1037028094|
+|     902|Fantasy|    321|     902|   3.0|    1181447699|
+|     902|Fantasy|    340|     902|   4.0|    1441777541|
+|     902|Fantasy|    346|     902|   4.0|     938884843|
+|     902|Fantasy|    353|     902|   4.5|    1063675401|
+|     902|Fantasy|    362|     902|   4.0|     945391320|
+|     902|Fantasy|    369|     902|   3.0|    1273359819|
+|     902|Fantasy|    387|     902|   4.0|    1137441602|
+|     902|Fantasy|    390|     902|   3.0|     976509667|
+|     902|Fantasy|    398|     902|   3.5|    1091537736|
++--------+-------+-------+--------+------+--------------+
 only showing top 20 rows
 
 == Physical Plan ==
-*(3) BroadcastHashJoin [movie_id#8L], [movie_id#1L], Inner, BuildLeft, false
-:- BroadcastExchange HashedRelationBroadcastMode(List(input[0, bigint, false]),false), [id=#132]
-:  +- *(2) Filter isnotnull(movie_id#8L)
-:     +- *(2) GlobalLimit 100
-:        +- Exchange SinglePartition, ENSURE_REQUIREMENTS, [id=#127]
-:           +- *(1) LocalLimit 100
-:              +- *(1) ColumnarToRow
-:                 +- FileScan parquet [movie_id#8L,genre#9] Batched: true, DataFilters: [], Format: Parquet, Location: InMemoryFileIndex[hdfs://master:9000/user/data/movie_genres_100.parquet], PartitionFilters: [], PushedFilters: [], ReadSchema: struct<movie_id:bigint,genre:string>
-+- *(3) Filter isnotnull(movie_id#1L)
-   +- *(3) ColumnarToRow
-      +- FileScan parquet [user_id#0L,movie_id#1L,rating#2,time_of_rating#3L] Batched: true, DataFilters: [isnotnull(movie_id#1L)], Format: Parquet, Location: InMemoryFileIndex[hdfs://master:9000/user/data/ratings.parquet], PartitionFilters: [], PushedFilters: [IsNotNull(movie_id)], ReadSchema: struct<user_id:bigint,movie_id:bigint,rating:double,time_of_rating:bigint>
+*(6) SortMergeJoin [movie_id#8L], [movie_id#1L], Inner
+:- *(3) Sort [movie_id#8L ASC NULLS FIRST], false, 0
+:  +- Exchange hashpartitioning(movie_id#8L, 200), ENSURE_REQUIREMENTS, [id=#155]
+:     +- *(2) Filter isnotnull(movie_id#8L)
+:        +- *(2) GlobalLimit 100
+:           +- Exchange SinglePartition, ENSURE_REQUIREMENTS, [id=#150]
+:              +- *(1) LocalLimit 100
+:                 +- *(1) ColumnarToRow
+:                    +- FileScan parquet [movie_id#8L,genre#9] Batched: true, DataFilters: [], Format: Parquet, Location: InMemoryFileIndex[hdfs://master:9000/user/data/movie_genres_100.parquet], PartitionFilters: [], PushedFilters: [], ReadSchema: struct<movie_id:bigint,genre:string>
++- *(5) Sort [movie_id#1L ASC NULLS FIRST], false, 0
+   +- Exchange hashpartitioning(movie_id#1L, 200), ENSURE_REQUIREMENTS, [id=#164]
+      +- *(4) Filter isnotnull(movie_id#1L)
+         +- *(4) ColumnarToRow
+            +- FileScan parquet [user_id#0L,movie_id#1L,rating#2,time_of_rating#3L] Batched: true, DataFilters: [isnotnull(movie_id#1L)], Format: Parquet, Location: InMemoryFileIndex[hdfs://master:9000/user/data/ratings.parquet], PartitionFilters: [], PushedFilters: [IsNotNull(movie_id)], ReadSchema: struct<user_id:bigint,movie_id:bigint,rating:double,time_of_rating:bigint>
 
 
-Time with choosing join type disabled is 5.5015 sec.
+Time with choosing join type disabled is 14.3166 sec.
