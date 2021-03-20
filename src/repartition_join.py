@@ -53,4 +53,7 @@ if __name__ == "__main__":
     final = repartition_join(ratings,movie_genres).collect()
     end = time.time()
 
+    for i in final:
+        print(i)
+    print()
     print("Execution time with repartition join: {} secs".format(end-start))
