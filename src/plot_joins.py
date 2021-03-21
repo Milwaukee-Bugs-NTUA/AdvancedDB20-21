@@ -4,17 +4,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 
-from query1 import *
-from query2 import *
-from query3 import *
-from query4 import *
-from query5 import *
-from query1_rdd import *
-from query2_rdd import *
-from query3_rdd import *
-from query4_rdd import *
-from query5_rdd import *
-
 def plot_results(data):
     x = np.arange(2)
     width = 0.35 

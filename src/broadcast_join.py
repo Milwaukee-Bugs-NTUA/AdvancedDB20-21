@@ -19,44 +19,57 @@ if __name__ == "__main__":
     spark = SparkSession.builder.appName('broadcast-join').getOrCreate()
     sc = spark.sparkContext
     
-    start = time.time()
     movie_genres = \
         sc.textFile("hdfs://master:9000/user/data/movie_genres_100.csv"). \
         mapPartitionsWithIndex(ignore_header). \
         map(split_complex). \
-        map(lambda row:(row[0],row[1])). \
-        groupByKey(). \
-        map(lambda row: (row[0],tuple(row[1]))). \
-        collect()
+        map(lambda row:(row[0],row[1]))
 
-    movie_genres_dict = dict(movie_genres)
-    sc.broadcast(movie_genres_dict)
     
-    def helper(iterator):
-        global movie_genres_dict
-        res = []
-        for row in iterator:
-            row = split_complex(row)
-            if row[1] in movie_genres_dict:
-                res.append(row)
-        return iter(res)
-    
-    def join(iterator):
-        global movie_genres_dict
-        res = []
-        for row in iterator:
-            for genre in movie_genres_dict[row[1]]:
-                res.append((row[1],(genre, (row[0],row[2],row[3]))))
-        return iter(res)
 
     ratings = \
-        sc.textFile("hdfs://master:9000/user/data/ratings.csv"). \
-        mapPartitionsWithIndex(ignore_header). \
-        mapPartitions(helper). \
-        mapPartitions(join). \
-        collect()
-    end = time.time()
+        sc.textFile("hdfs://master:9000/user/data/ratings.csv").mapPartitionsWithIndex(ignore_header)
+    
 
-    # for i in ratings:
-    #     print(i)
+
+    def broadcast_join(small_rdd, big_rdd, context):
+        
+        small = small_rdd.groupByKey(). \
+        map(lambda row: (row[0],tuple(row[1]))). \
+        collect()
+        
+        small_rdd_hash = dict(small)
+        
+        def helper(iterator):
+            res = []
+            for row in iterator:
+                row = split_complex(row)
+                if row[1] in small_rdd_hash:
+                    res.append(row)
+            return iter(res)
+    
+        def join(iterator):
+            res = []
+            for row in iterator:
+                for genre in small_rdd_hash[row[1]]:
+                    res.append((row[1],(genre, (row[0],row[2],row[3]))))
+            return iter(res)
+        
+        context.broadcast(small_rdd_hash)
+        
+        res = big_rdd.mapPartitions(helper). \
+        mapPartitions(join)
+
+        return res
+    
+
+    start = time.time()
+    
+    table = broadcast_join(movie_genres, ratings, sc).collect()
+    
+    end = time.time()
+    
+    for i in table:
+       print(i)
+    print()
     print("Execution time with broadcast join: {} secs".format(end-start))
